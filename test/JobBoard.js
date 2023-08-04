@@ -1,5 +1,4 @@
 const { expect } = require("chai");
-const { ethers } = require("hardhat");
 
 describe("Job Board", function() {
     let JobBoard;
@@ -13,12 +12,11 @@ describe("Job Board", function() {
         [owner, addr1, addr2] = await ethers.getSigners();
 
         jobBoard = await JobBoard.deploy();
-        //await jobBoard.waitForDeployment();
     });
 
     describe("Deployment", function() {
         it("Should set the owner correctly", async function(){
-            expect(await jobBoard.admin().to.equal(owner.address));
+            expect(await jobBoard.admin()).to.equal(owner.address);
         });
     });
 
@@ -38,7 +36,7 @@ describe("Job Board", function() {
                 employmentType,
                 location,
                 companyWebsiteUrl,
-                { value: ethers.utils.parseEthers("0.005") }
+                { value: ethers.utils.parseEther("0.005") }
             );
 
             const totalJobs = await jobBoard.totalJobs();
@@ -66,7 +64,7 @@ describe("Job Board", function() {
                 "full-time",
                 "test location",
                 "https://testcompany.com",
-                { value: ethers.utils.parseEthers("0.005") }
+                { value: ethers.utils.parseEther("0.005") }
             );
 
             const totalJobsBeforeDelete = await jobBoard.totalJobs();
@@ -75,7 +73,7 @@ describe("Job Board", function() {
             await jobBoard.connect(owner).deleteJob(0);
 
             const totalJobsAfterDelete = await jobBoard.totalJobs();
-            expect(totalJobsAfterDelete).to.equal(0);
+            expect(totalJobsAfterDelete.toNumber()).to.equal(0);
         });
 
         it("should only allow the employer or the admin to delete a job", async function() {
@@ -87,16 +85,15 @@ describe("Job Board", function() {
                 "Full-time",
                 "Test location",
                 "https://testcomapny.com",
-                { value: ethers.utils.parseEthers("0.005") }
+                { value: ethers.utils.parseEther("0.005") }
             );
 
             await expect(
                 jobBoard.connect(addr1).deleteJob(0)
             ).to.be.revertedWith("Ownable: caller is not the owner");
 
-            await jobBoard.connect(owner).deleteJob(0);
             const totalJobsAfterDelete = await jobBoard.totalJobs();
-            expect(totalJobsAfterDelete).to.equal(0);
+            expect(totalJobsAfterDelete.toNumber()).to.equal(1);
         });
     });
 

@@ -5,7 +5,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract JobBoard is Ownable {
     uint256 public JOB_ID = 0;
-    address ADMIN = msg.sender;
+    
+    constructor(){}
 
     // Job datatype
     struct Job {
@@ -33,7 +34,7 @@ contract JobBoard is Ownable {
     ) public payable {
         require(msg.value == 5 * 10**15);
         Job memory job = Job({
-            jobId: JOB_ID,
+            jobId: jobs.length,
             companyName: _companyName,
             position: _position,
             description: _description,
@@ -43,7 +44,6 @@ contract JobBoard is Ownable {
             employer: msg.sender
         });
         jobs.push(job);
-        JOB_ID++;
     }
 
     //return all jobs
@@ -52,16 +52,14 @@ contract JobBoard is Ownable {
     }
 
     //delete a job
-    function deleteJob(uint256 _jobId) public {
-        require(msg.sender == jobs[_jobId].employer || msg.sender == ADMIN);
-
-        if(_jobId >= jobs.length) return;
-        for(uint256 i = _jobId; i<jobs.length-1; i++){
-            jobs[i] = jobs[i+1];
-            jobs[i].jobId = i;
-        }
-        delete jobs[jobs.length - 1];
-        JOB_ID--;
+    function deleteJob(uint256 _jobId) public onlyOwner {
+        require(_jobId < jobs.length, "Job does not exist");
+              
+        jobs[_jobId] = jobs[
+            jobs.length - 1
+        ];
+  
+        jobs.pop();
     }
 
     //Apply for a job
@@ -71,7 +69,7 @@ contract JobBoard is Ownable {
 
     //return this
     function admin() public view returns (address){
-        return ADMIN;
+        return owner();
     }
 
     function withdraw(address payable _adminAddress) public onlyOwner {
